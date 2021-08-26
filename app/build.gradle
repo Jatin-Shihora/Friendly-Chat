@@ -16,6 +16,8 @@ android {
         targetSdkVersion 30
         versionCode 1
         versionName "1.0"
+        //For firebase authentication
+        resConfigs "en" // And any other languages you support
     }
     buildTypes {
         release {
@@ -45,10 +47,16 @@ dependencies {
     // Displaying images
     implementation 'com.github.bumptech.glide:glide:3.7.0'
 
+
     // Import the BoM for the Firebase platform
     implementation platform('com.google.firebase:firebase-bom:28.3.1')
     //For Realtime Database in firebase
     implementation 'com.google.firebase:firebase-database'
+    //For Authentication features in firebase
+    implementation 'com.google.firebase:firebase-auth'
+    //For UI of firebase based Authentication
+    implementation 'com.firebaseui:firebase-ui-auth:8.0.0'
+
 }
 //For Firebase
 apply plugin: 'com.google.gms.google-services'

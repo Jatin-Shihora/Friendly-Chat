@@ -17,6 +17,7 @@ package com.google.firebase.udacity.friendlychat;
 
 import android.os.Bundle;
 
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
@@ -33,6 +34,9 @@ import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.ProgressBar;
 
+import com.firebase.ui.auth.AuthUI;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -40,6 +44,7 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
@@ -48,6 +53,7 @@ public class MainActivity extends AppCompatActivity {
 
     public static final String ANONYMOUS = "anonymous";
     public static final int DEFAULT_MSG_LENGTH_LIMIT = 1000;
+    public static final int RC_SIGN_IN = 1;//RC stands for Request Code
 
     private ListView mMessageListView;
     private MessageAdapter mMessageAdapter;
@@ -60,8 +66,12 @@ public class MainActivity extends AppCompatActivity {
 
     //Firebase instance Variables for realtime database
     private FirebaseDatabase mFirebaseDatabase ;
-    private DatabaseReference mMessagesDatabaseReference;
-    private ChildEventListener mChildEventListener;
+    private DatabaseReference mMessagesDatabaseReference ;
+    private ChildEventListener mChildEventListener ;
+    //Firebase instance Variables for Authentications
+    private FirebaseAuth mFirebaseAuth ;
+    private FirebaseAuth.AuthStateListener mAuthStateListener;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -71,7 +81,9 @@ public class MainActivity extends AppCompatActivity {
         mUsername = ANONYMOUS;
 
         //Initialize the firebase components
-        mFirebaseDatabase = FirebaseDatabase.getInstance();
+        mFirebaseDatabase = FirebaseDatabase.getInstance();//Initializing the firebase-database
+        mFirebaseAuth = FirebaseAuth.getInstance();//Initializing the firebase-auth
+
         mMessagesDatabaseReference = mFirebaseDatabase.getReference().child("messages");
 
         // Initialize references to views
@@ -162,6 +174,50 @@ public class MainActivity extends AppCompatActivity {
             public void onCancelled(@NonNull DatabaseError error) { }
         };
         mMessagesDatabaseReference.addChildEventListener(mChildEventListener);
+        /**
+         * Initialize the firebase AuthStateListener
+         * @param firebaseAuth -This has two states signedIn and signedOut state .
+         *                      checks whether the user is currently signedIn or signedOut .
+         * */
+        mAuthStateListener = new FirebaseAuth.AuthStateListener() {
+            @Override
+            public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
+                FirebaseUser user = firebaseAuth.getCurrentUser();
+                if (user!=null){
+                    //User is signedIn
+                }else {
+                    //user is signed out
+                    // Choose authentication providers
+                    List<AuthUI.IdpConfig> providers = Arrays.asList(
+                            new AuthUI.IdpConfig.EmailBuilder().build(),
+                            new AuthUI.IdpConfig.GoogleBuilder().build());
+
+                    // Create and launch sign-in intent
+                    startActivityForResult(
+                            AuthUI.getInstance()
+                                    .createSignInIntentBuilder()
+                                    .setAvailableProviders(providers)
+                                    .build(),
+                            RC_SIGN_IN);
+                }
+
+            }
+        };
+
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        //when the activity is no longer in the foreground
+        mFirebaseAuth.removeAuthStateListener(mAuthStateListener);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        //when the activity is in the foreground
+        mFirebaseAuth.addAuthStateListener(mAuthStateListener);
     }
 
     @Override

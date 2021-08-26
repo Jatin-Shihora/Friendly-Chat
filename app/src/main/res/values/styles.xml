@@ -1,0 +1,10 @@
+<resources>
+
+    <!-- Base application theme. -->
+    <style name="AppTheme" parent="Theme.AppCompat.Light.DarkActionBar"></style>
+
+    <style name="FriendlyButtonStyle" parent="Widget.AppCompat.Button">
+        <item name="android:textColor">@color/colorTitle</item>
+
+    </style>
+</resources>

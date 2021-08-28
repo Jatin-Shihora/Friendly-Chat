@@ -56,7 +56,8 @@ dependencies {
     implementation 'com.google.firebase:firebase-auth'
     //For UI of firebase based Authentication
     implementation 'com.firebaseui:firebase-ui-auth:8.0.0'
-
+    //For Firebase Storage
+    implementation 'com.google.firebase:firebase-storage'
 }
 //For Firebase
 apply plugin: 'com.google.gms.google-services'

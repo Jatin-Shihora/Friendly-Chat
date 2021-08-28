@@ -16,13 +16,8 @@
 package com.google.firebase.udacity.friendlychat;
 
 import android.content.Intent;
-import android.media.Image;
+import android.net.Uri;
 import android.os.Bundle;
-
-import androidx.activity.result.contract.ActivityResultContracts;
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.appcompat.app.AppCompatActivity;
 import android.text.Editable;
 import android.text.InputFilter;
 import android.text.TextWatcher;
@@ -37,14 +32,24 @@ import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
+
 import com.firebase.ui.auth.AuthUI;
+import com.google.android.gms.tasks.Continuation;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.ChildEventListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
+import com.google.firebase.storage.UploadTask;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -75,6 +80,9 @@ public class MainActivity extends AppCompatActivity {
     //Firebase instance Variables for Authentications
     private FirebaseAuth mFirebaseAuth ;
     private FirebaseAuth.AuthStateListener mAuthStateListener;
+    //Firebase instance variables for Storage
+    private FirebaseStorage mFirebaseStorage;
+    private StorageReference mChatPhotosStorageReference;
 
 
     @Override
@@ -87,8 +95,10 @@ public class MainActivity extends AppCompatActivity {
         //Initialize the firebase components
         mFirebaseDatabase = FirebaseDatabase.getInstance();//Initializing the firebase-database
         mFirebaseAuth = FirebaseAuth.getInstance();//Initializing the firebase-auth
+        mFirebaseStorage = FirebaseStorage.getInstance();//Initializing the firebase-storage
 
         mMessagesDatabaseReference = mFirebaseDatabase.getReference().child("messages");
+        mChatPhotosStorageReference = mFirebaseStorage.getReference().child("chat_photos");
 
         // Initialize references to views
         mProgressBar = (ProgressBar) findViewById(R.id.progressBar);
@@ -187,15 +197,31 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == RC_SIGN_IN) {
-            if (resultCode == RESULT_OK) {
-                // Sign-in succeeded, set up the UI
-                Toast.makeText(this, "Signed in!", Toast.LENGTH_SHORT).show();
-            } else if (resultCode == RESULT_CANCELED) {
-                // Sign in was canceled by the user, finish the activity
-                Toast.makeText(this, "Sign in canceled", Toast.LENGTH_SHORT).show();
-                finish();
-            }
+        if (requestCode == RC_SIGN_IN && resultCode == RESULT_OK) {
+            Toast.makeText(this, "Signed in!", Toast.LENGTH_SHORT).show();
+        } else if (resultCode == RESULT_CANCELED) {
+            Toast.makeText(this, "Sign in canceled!", Toast.LENGTH_SHORT).show();
+        } else if (requestCode == RC_PHOTO_PICKER && resultCode == RESULT_OK) {
+            Uri selectedImageUri = data.getData();
+
+            // Get a reference to store file at chat_photos/<FILENAME>
+            final StorageReference photoRef = mChatPhotosStorageReference.child(selectedImageUri.getLastPathSegment());
+
+            photoRef.putFile(selectedImageUri)
+                    .addOnSuccessListener(this, new OnSuccessListener<UploadTask.TaskSnapshot>() {
+                        @Override
+                        public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                            //When the image has successfully uploaded, get its download URL
+                            photoRef.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
+                                @Override
+                                public void onSuccess(Uri uri) {
+                                    Uri dlUri = uri;
+                                    FriendlyMessage friendlyMessage = new FriendlyMessage(null, mUsername, dlUri.toString());
+                                    mMessagesDatabaseReference.push().setValue(friendlyMessage);
+                                }
+                            });
+                        }
+                    });
         }
     }
 

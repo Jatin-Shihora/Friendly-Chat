@@ -63,6 +63,9 @@ dependencies {
     implementation 'com.google.firebase:firebase-core'
     implementation 'com.google.firebase:firebase-inappmessaging'
     implementation 'com.google.firebase:firebase-analytics'
+    //For Firebase config
+    implementation 'com.google.firebase:firebase-config'
+
 
 }
 //For Firebase

@@ -58,6 +58,12 @@ dependencies {
     implementation 'com.firebaseui:firebase-ui-auth:8.0.0'
     //For Firebase Storage
     implementation 'com.google.firebase:firebase-storage'
+    // Declare the dependencies for the In-App Messaging and Analytics libraries
+    implementation 'com.google.firebase:firebase-inappmessaging-display'
+    implementation 'com.google.firebase:firebase-core'
+    implementation 'com.google.firebase:firebase-inappmessaging'
+    implementation 'com.google.firebase:firebase-analytics'
+
 }
 //For Firebase
 apply plugin: 'com.google.gms.google-services'

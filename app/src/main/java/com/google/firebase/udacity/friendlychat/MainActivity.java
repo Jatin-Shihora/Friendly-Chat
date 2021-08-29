@@ -215,8 +215,8 @@ public class MainActivity extends AppCompatActivity {
                             photoRef.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
                                 @Override
                                 public void onSuccess(Uri uri) {
-                                    Uri dlUri = uri;
-                                    FriendlyMessage friendlyMessage = new FriendlyMessage(null, mUsername, dlUri.toString());
+                                    Uri downloadUri = uri;
+                                    FriendlyMessage friendlyMessage = new FriendlyMessage(null, mUsername, downloadUri.toString());
                                     mMessagesDatabaseReference.push().setValue(friendlyMessage);
                                 }
                             });
